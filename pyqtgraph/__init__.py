@@ -198,6 +198,42 @@ path = os.path.split(__file__)[0]
 
 ## Attempts to work around exit crashes:
 import atexit
+from .graphicsItems.VTickGroup import * 
+from .graphicsItems.GraphicsWidget import * 
+from .graphicsItems.ScaleBar import * 
+from .graphicsItems.PlotDataItem import * 
+from .graphicsItems.GraphItem import * 
+from .graphicsItems.TextItem import * 
+from .graphicsItems.GraphicsLayout import * 
+from .graphicsItems.UIGraphicsItem import * 
+from .graphicsItems.GraphicsObject import * 
+from .graphicsItems.PlotItem import * 
+from .graphicsItems.ROI import * 
+from .graphicsItems.InfiniteLine import * 
+from .graphicsItems.HistogramLUTItem import * 
+from .graphicsItems.GridItem import * 
+from .graphicsItems.GradientLegend import * 
+from .graphicsItems.GraphicsItem import * 
+from .graphicsItems.BarGraphItem import * 
+from .graphicsItems.ViewBox import * 
+from .graphicsItems.ArrowItem import * 
+from .graphicsItems.ImageItem import * 
+from .graphicsItems.AxisItem import * 
+from .graphicsItems.DateAxisItem import *
+from .graphicsItems.LabelItem import * 
+from .graphicsItems.CurvePoint import * 
+from .graphicsItems.GraphicsWidgetAnchor import * 
+from .graphicsItems.PlotCurveItem import * 
+from .graphicsItems.ButtonItem import * 
+from .graphicsItems.GradientEditorItem import * 
+from .graphicsItems.MultiPlotItem import * 
+from .graphicsItems.ErrorBarItem import * 
+from .graphicsItems.IsocurveItem import * 
+from .graphicsItems.LinearRegionItem import * 
+from .graphicsItems.FillBetweenItem import * 
+from .graphicsItems.LegendItem import * 
+from .graphicsItems.ScatterPlotItem import * 
+from .graphicsItems.ItemGroup import * 
 
 from .colormap import *
 from .functions import *
