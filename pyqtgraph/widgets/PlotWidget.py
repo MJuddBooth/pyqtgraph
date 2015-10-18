@@ -54,6 +54,7 @@ class PlotWidget(GraphicsView):
         GraphicsView.__init__(self, parent, background=background)
         self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         self.enableMouse(False)
+        self.rightViewBox = None
         if plotItem is None:
             self.plotItem = PlotItem(**kargs)
         else:
