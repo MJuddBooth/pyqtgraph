@@ -53,7 +53,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         self.brush = brush if brush else fn.mkBrush(100,100,100,50)
 
         self.labelOptions = dict(size=textSize, bold=textBold, italic=textItalic)   
-        self.labelOptions = {k:v for k, v in self.labelOptions if v is not None}
+        self.labelOptions = {k:v for k, v in self.labelOptions.items() if v is not None}
         
     def setParentItem(self, p):
         ret = GraphicsWidget.setParentItem(self, p)
