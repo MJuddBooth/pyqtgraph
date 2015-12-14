@@ -19,7 +19,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         legend.setParentItem(plotItem)
 
     """
-    def __init__(self, size=None, offset=None):
+    def __init__(self, size=None, offset=None, pen=None, brush=None, textSize=None, 
+                 textBold=None, textItalic=None):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -46,6 +47,13 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         self.offset = offset
         if size is not None:
             self.setGeometry(QtCore.QRectF(0, 0, self.size[0], self.size[1]))
+
+        
+        self.pen = pen if pen else fn.mkPen(255,255,255,100) 
+        self.brush = brush if brush else fn.mkBrush(100,100,100,50)
+
+        self.labelOptions = dict(size=textSize, bold=textBold, italic=textItalic)   
+        self.labelOptions = {k:v for k, v in self.labelOptions if v is not None}
         
     def setParentItem(self, p):
         ret = GraphicsWidget.setParentItem(self, p)
@@ -57,7 +65,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
         return ret
         
-    def addItem(self, item, name):
+    def addItem(self, item, name, **kwargs):
         """
         Add a new entry to the legend. 
 
@@ -70,7 +78,9 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         title           The title to display for this item. Simple HTML allowed.
         ==============  ========================================================
         """
-        label = LabelItem(name)
+        opts = self.labelOptions.copy()
+        opts = opts.update(kwargs)
+        label = LabelItem(name, **opts)
         if isinstance(item, ItemSample):
             sample = item
         else:
@@ -120,8 +130,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         return QtCore.QRectF(0, 0, self.width(), self.height())
     
     def paint(self, p, *args):
-        p.setPen(fn.mkPen(255,255,255,100))
-        p.setBrush(fn.mkBrush(100,100,100,50))
+        p.setPen(self.pen)
+        p.setBrush(self.brush)
         p.drawRect(self.boundingRect())
 
     def hoverEvent(self, ev):
@@ -131,8 +141,25 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         if ev.button() == QtCore.Qt.LeftButton:
             dpos = ev.pos() - ev.lastPos()
             self.autoAnchor(self.pos() + dpos)
+    
+    def setTextSize(self, size):
+        self.labelOptions["size"] = size
 
+    def setTextBold(self, bold):
+        self.lableOptions["bold"] = bold
+  
+    def setTextItalic(self, italic):
+        self.lableOptions["italic"] = italic
 
+    def setPen(self, pen):
+        self.pen = fn.mkPen(pen)
+
+    def setBrush(self, brush):
+        self.pen = fn.mkBrush(brush)
+        
+    def setOpacity(self, level):
+        self.brush.setAlpha(level)
+        
 class ItemSample(GraphicsWidget):
     """ Class responsible for drawing a single item in a LegendItem (sans label).
     
