@@ -20,8 +20,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         legend.setParentItem(plotItem)
 
     """
-    def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0, pen=None,
-                 brush=None, labelTextColor=None, **kwargs):
+    def __init__(self, size=None, offset=None, pen=None, brush=None, textSize=None, 
+                 textBold=None, textItalic=None):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -60,67 +60,13 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         if size is not None:
             self.setGeometry(QtCore.QRectF(0, 0, self.size[0], self.size[1]))
 
-        self.opts = {
-            'pen': fn.mkPen(pen),
-            'brush': fn.mkBrush(brush),
-            'labelTextColor': labelTextColor,
-            'offset': offset,
-        }
+        
+        self.pen = pen if pen else fn.mkPen(255,255,255,100) 
+        self.brush = brush if brush else fn.mkBrush(100,100,100,50)
 
-        self.opts.update(kwargs)
-
-    def offset(self):
-        return self.opts['offset']
-
-    def setOffset(self, offset):
-        self.opts['offset'] = offset
-
-        offset = Point(self.opts['offset'])
-        anchorx = 1 if offset[0] <= 0 else 0
-        anchory = 1 if offset[1] <= 0 else 0
-        anchor = (anchorx, anchory)
-        self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
-
-    def pen(self):
-        return self.opts['pen']
-
-    def setPen(self, *args, **kargs):
-        """
-        Sets the pen used to draw lines between points.
-        *pen* can be a QPen or any argument accepted by
-        :func:`pyqtgraph.mkPen() <pyqtgraph.mkPen>`
-        """
-        pen = fn.mkPen(*args, **kargs)
-        self.opts['pen'] = pen
-
-        self.paint()
-
-    def brush(self):
-        return self.opts['brush']
-
-    def setBrush(self, *args, **kargs):
-        brush = fn.mkBrush(*args, **kargs)
-        if self.opts['brush'] == brush:
-            return
-        self.opts['brush'] = brush
-
-        self.paint()
-
-    def labelTextColor(self):
-        return self.opts['labelTextColor']
-
-    def setLabelTextColor(self, *args, **kargs):
-        """
-        Sets the color of the label text.
-        *pen* can be a QPen or any argument accepted by
-        :func:`pyqtgraph.mkColor() <pyqtgraph.mkPen>`
-        """
-        self.opts['labelTextColor'] = fn.mkColor(*args, **kargs)
-        for sample, label in self.items:
-            label.setAttr('color', self.opts['labelTextColor'])
-
-        self.paint()
-
+        self.labelOptions = dict(size=textSize, bold=textBold, italic=textItalic)   
+        self.labelOptions = {k:v for k, v in self.labelOptions if v is not None}
+        
     def setParentItem(self, p):
         ret = GraphicsWidget.setParentItem(self, p)
         if self.offset is not None:
@@ -130,8 +76,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             anchor = (anchorx, anchory)
             self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
         return ret
-
-    def addItem(self, item, name):
+        
+    def addItem(self, item, name, **kwargs):
         """
         Add a new entry to the legend.
 
@@ -144,7 +90,9 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         title           The title to display for this item. Simple HTML allowed.
         ==============  ========================================================
         """
-        label = LabelItem(name, color=self.opts['labelTextColor'], justify='left')
+        opts = self.labelOptions.copy()
+        opts = opts.update(kwargs)
+        label = LabelItem(name, **opts)
         if isinstance(item, ItemSample):
             sample = item
         else:
@@ -203,8 +151,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         return QtCore.QRectF(0, 0, self.width(), self.height())
 
     def paint(self, p, *args):
-        p.setPen(self.opts['pen'])
-        p.setBrush(self.opts['brush'])
+        p.setPen(self.pen)
+        p.setBrush(self.brush)
         p.drawRect(self.boundingRect())
 
     def hoverEvent(self, ev):
@@ -215,8 +163,25 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             ev.accept()
             dpos = ev.pos() - ev.lastPos()
             self.autoAnchor(self.pos() + dpos)
+    
+    def setTextSize(self, size):
+        self.labelOptions["size"] = size
 
+    def setTextBold(self, bold):
+        self.lableOptions["bold"] = bold
+  
+    def setTextItalic(self, italic):
+        self.lableOptions["italic"] = italic
 
+    def setPen(self, pen):
+        self.pen = fn.mkPen(pen)
+
+    def setBrush(self, brush):
+        self.pen = fn.mkBrush(brush)
+        
+    def setOpacity(self, level):
+        self.brush.setAlpha(level)
+        
 class ItemSample(GraphicsWidget):
     """ Class responsible for drawing a single item in a LegendItem (sans label).
 
