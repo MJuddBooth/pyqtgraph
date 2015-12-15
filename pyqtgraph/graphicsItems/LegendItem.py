@@ -153,6 +153,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 =======
     
     def setTextSize(self, size):
+        if isinstance(size, int):
+            size = str(size) + "pt"
         self.labelOptions["size"] = size
 
     def setTextBold(self, bold):
