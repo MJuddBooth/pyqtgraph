@@ -61,4 +61,4 @@ class PrintExporter(Exporter):
         painter.end()
 
 
-#PrintExporter.register()        
+PrintExporter.register()
