@@ -21,7 +21,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
     """
     def __init__(self, size=None, offset=None, pen=None, brush=None, textSize=None, 
-                 textBold=None, textItalic=None):
+                 textBold=None, textItalic=None, sampleScale=1):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -64,7 +64,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         self.pen = pen if pen else fn.mkPen(255,255,255,100) 
         self.brush = brush if brush else fn.mkBrush(100,100,100,50)
 
-        self.labelOptions = dict(size=textSize, bold=textBold, italic=textItalic)   
+        self.labelOptions = dict(size=textSize, bold=textBold, italic=textItalic, sampleScale=sampleScale)
         self.labelOptions = {k:v for k, v in self.labelOptions.items() if v is not None}
         
     def setParentItem(self, p):
@@ -96,8 +96,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         if isinstance(item, ItemSample):
             sample = item
         else:
-            sample = ItemSample(item)
-
+            sample = ItemSample(item, sampleScale=opts['sampleScale'])
         row = self.layout.rowCount()
         self.items.append((sample, label))
         self.layout.addItem(sample, row, 0)
@@ -165,9 +164,13 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             self.autoAnchor(self.pos() + dpos)
     
     def setTextSize(self, size):
-        if isinstance(size, int):
-            size = str(size) + "pt"
-        self.labelOptions["size"] = size
+        self.setTextOption(size=size)
+
+    def setTextOption(self, **opts):
+        for k, v in opts.items():
+            if k.lower() == "size" and isinstance(v, int):
+                v = str(v) + "pt"
+            self.labelOptions[k] = v
 
     def setTextBold(self, bold):
         self.lableOptions["bold"] = bold
@@ -179,10 +182,12 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         self.pen = fn.mkPen(pen)
 
     def setBrush(self, brush):
-        self.pen = fn.mkBrush(brush)
+        self.brush = fn.mkBrush(brush)
         
     def setOpacity(self, level):
-        self.brush.setAlpha(level)
+        color = self.brush.color()
+        color.setAlpha(level)
+        self.brush.setColor(color)
         
 class ItemSample(GraphicsWidget):
     """ Class responsible for drawing a single item in a LegendItem (sans label).
@@ -190,10 +195,11 @@ class ItemSample(GraphicsWidget):
     This may be subclassed to draw custom graphics in a Legend.
     """
     ## Todo: make this more generic; let each item decide how it should be represented.
-    def __init__(self, item):
+    def __init__(self, item, sampleScale=1):
         GraphicsWidget.__init__(self)
         self.item = item
-
+        self.sampleScale = sampleScale
+    
     def boundingRect(self):
         return QtCore.QRectF(0, 0, 20, 20)
 
@@ -204,9 +210,14 @@ class ItemSample(GraphicsWidget):
             p.setRenderHint(p.Antialiasing)
 
         if not isinstance(self.item, ScatterPlotItem):
-            p.setPen(fn.mkPen(opts['pen']))
-            p.drawLine(0, 11, 20, 11)
-
+            pen = opts['pen']
+            if isinstance(pen, QtGui.QPen):
+                newpen = fn.mkPen(pen, width=pen.width() * self.sampleScale)
+            else:
+                newpen = fn.mkPen(pen, width=self.sampleScale)
+            p.setPen(newpen)
+            p.drawLine(2, 18, 18, 2)
+        
         symbol = opts.get('symbol', None)
         if symbol is not None:
             if isinstance(self.item, PlotDataItem):
