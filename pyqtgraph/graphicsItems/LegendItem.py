@@ -19,6 +19,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         legend.setParentItem(plotItem)
 
     """
+
     def __init__(self, size=None, offset=None, pen=None, brush=None, textSize=None,
                  textBold=None, textItalic=None, sampleScale=1):
         """
@@ -35,8 +36,6 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         ==============  ===============================================================
 
         """
-
-
         GraphicsWidget.__init__(self)
         GraphicsWidgetAnchor.__init__(self)
         self.setFlag(self.ItemIgnoresTransformations)
@@ -48,8 +47,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         if size is not None:
             self.setGeometry(QtCore.QRectF(0, 0, self.size[0], self.size[1]))
 
-
         self.pen = pen if pen else fn.mkPen(255,255,255,100)
+
         self.brush = brush if brush else fn.mkBrush(100,100,100,50)
 
         self.labelOptions = dict(size=textSize, bold=textBold, italic=textItalic, sampleScale=sampleScale)
