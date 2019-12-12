@@ -241,15 +241,6 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
                 return                                  # return after first match
 
     def clear(self):
-        """Removes all items from legend."""
-        for sample, label in self.items:
-            self.layout.removeItem(sample)
-            self.layout.removeItem(label)
-
-        self.items = []
-        self.updateSize()
-
-    def clear(self):
         """
         Removes all items from the legend.
 
