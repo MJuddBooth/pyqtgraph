@@ -55,12 +55,14 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
                         accepted by :func:`mkPen <pyqtgraph.mkPen>` is allowed.
         labelTextSize   Size to use when drawing legend text. Accepts CSS style
                         string arguments, e.g. '9pt'.
+        labelTextSize   The size of the label text.
+        labelTextBold   If True, label text will be bold.
+        labelTextItalic If True, label text will be italic.
         colCount        Specifies the integer number of columns that the legend should
                         be divided into. The number of rows will be calculated
                         based on this argument. This is useful for plots with many
                         curves displayed simultaneously. Default: 1 column.
         sampleType      Customizes the item sample class of the `LegendItem`.
-        labelTextBold
         ==============  ===============================================================
 
         """
