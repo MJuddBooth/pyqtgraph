@@ -10,6 +10,7 @@ from .GraphicsWidgetAnchor import GraphicsWidgetAnchor
 from .LabelItem import LabelItem
 from .PlotDataItem import PlotDataItem
 from .ScatterPlotItem import ScatterPlotItem, drawSymbol
+from pyqtgraph.examples.console_exception_inspection import raiseFrom
 
 __all__ = ['LegendItem', 'ItemSample']
 
@@ -28,10 +29,10 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         legend.setParentItem(plotItem)
 
     """
-
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0,
                  pen=None, brush=None, labelTextColor=None, frame=True,
-                 labelTextSize='9pt', colCount=1, sampleType=None, **kwargs):
+                 labelTextSize='0pt', labelTextBold=None, labelTextItalic=None,
+                 colCount=1, sampleType=None, **kwargs):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -59,6 +60,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
                         based on this argument. This is useful for plots with many
                         curves displayed simultaneously. Default: 1 column.
         sampleType      Customizes the item sample class of the `LegendItem`.
+        labelTextBold
         ==============  ===============================================================
 
         """
@@ -92,6 +94,8 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
             'brush': fn.mkBrush(brush),
             'labelTextColor': labelTextColor,
             'labelTextSize': labelTextSize,
+            'labelTextBold': labelTextBold,
+            'labelTextItalic': labelTextItalic,
             'offset': offset,
         }
         self.opts.update(kwargs)
@@ -113,6 +117,22 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
             self.addItem(plot_item, plot_name)
 
         self.updateSize()
+
+    def labelItemOptions(self):
+        """
+        Return those options specific to labelItem, in a format that
+        is appropriate for __init__.
+        """
+
+        def _translateOpt(arg):
+            for p in ["labelText", "text"]:
+                if arg.starswith(p):
+                    arg = arg.replace(p, "")
+            return arg
+
+        arglist = {_translateOpt(k): v for k, v in self.opts.items()
+                   if _translateOpt(k) != k and v is not None}
+        return arglist
 
     def offset(self):
         """Get the offset position relative to the parent."""
@@ -188,6 +208,39 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
 
         self.update()
 
+    # avoiding a little boilerplate here
+    def setLabelAttr(self, attr, value):
+        """
+        Set an attr on a LabelItem. Should be one of
+        bold, italic or size.
+        """
+
+        key = 'labelText' + attr.capitalize()
+        self.opts[key] = value
+        for _, label in self.items:
+            label.setAttr(attr, value)
+
+        self.update()
+
+    def labelTextBold(self):
+        return self.opts['labelTextBold']
+
+    def setLabelTextBold(self, bold=True):
+        """
+        Set label text to be bold.
+        """
+        self.setLabelAttr("bold", bold)
+
+    def labelTextItalic(self):
+        return self.opts['labelTextItalic']
+
+    def setLabelTextItalic(self, italic=True):
+        """
+        Set label text to be italic.
+        """
+        self.setLabelAttr("italic", italic)
+
+
     def setParentItem(self, p):
         """Set the parent."""
         ret = GraphicsWidget.setParentItem(self, p)
@@ -199,7 +252,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
             self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
         return ret
 
-    def addItem(self, item, name):
+    def addItem(self, item, name, **kwargs):
         """
         Add a new entry to the legend.
 
@@ -212,9 +265,10 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         title           The title to display for this item. Simple HTML allowed.
         ==============  ========================================================
         """
-        label = LabelItem(name, color=self.opts['labelTextColor'],
-                          justify='left', size=self.opts['labelTextSize'])
-        if isinstance(item, self.sampleType):
+        opts = self.labelItemOptions()
+        opts = opts.update(kwargs)
+        label = LabelItem(name, **opts)
+        if isinstance(item, self.SampleType):
             sample = item
         else:
             sample = self.sampleType(item)
