@@ -44,7 +44,9 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
                         accepted by :func:`mkBrush <pyqtgraph.mkBrush>` is allowed.
         labelTextColor  Pen to use when drawing legend text. Any single argument
                         accepted by :func:`mkPen <pyqtgraph.mkPen>` is allowed.
-        labelTextBold
+        labelTextSize   The size of the label text.
+        labelTextBold   If True, label text will be bold.
+        labelTextItalic If True, label text will be italic.
         ==============  ===============================================================
 
         """
