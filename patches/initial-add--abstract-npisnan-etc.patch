@@ -1,0 +1,37 @@
+From 0a92c892fd705a2fd8532abe997c7fcd32461e25 Sun, 18 Oct 2015 14:29:25 -0400
+From: Michael Booth <m.judd.booth@gmail.com>
+Date: Thu, 23 Apr 2015 22:59:13 -0400
+Subject: [PATCH] initial add - abstract np.isnan etc
+
+
+diff --git a/pyqtgraph/util/nanfuncs.py b/pyqtgraph/util/nanfuncs.py
+new file mode 100644
+index 0000000..82437fa
+--- /dev/null
++++ b/pyqtgraph/util/nanfuncs.py
+@@ -0,0 +1,25 @@
++'''
++Created on Jan 31, 2015
++
++@author: booth
++
++wrapper around np.nanmin, nanmax and isfinite that support np.datetime64.
++
++'''
++
++import numpy as np
++
++try:
++    np.isnan(np.datetime64("2001-01-01"))
++    from numpy import nanmin, nanmax, isfinite
++except TypeError as e:
++    try:
++        from pandas.core.nanops import nanmin, nanmax
++        from pandas.core.nanops import notnull as isfinite
++    except ImportError as ie:
++        ie.message += "will have to rewrite np.nanmin"
++        raise
++
++    
++    
++

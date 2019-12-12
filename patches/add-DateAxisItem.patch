@@ -1,0 +1,18 @@
+From fc9cf94fdd5102e27122a068392702aba5d5086f Sun, 18 Oct 2015 14:28:24 -0400
+From: Michael Booth <m.judd.booth@gmail.com>
+Date: Thu, 23 Apr 2015 22:59:50 -0400
+Subject: [PATCH] add DateAxisItem
+
+
+diff --git a/pyqtgraph/__init__.py b/pyqtgraph/__init__.py
+index 2edf928..b73e2be 100644
+--- a/pyqtgraph/__init__.py
++++ b/pyqtgraph/__init__.py
+@@ -205,6 +205,7 @@
+ from .graphicsItems.ArrowItem import * 
+ from .graphicsItems.ImageItem import * 
+ from .graphicsItems.AxisItem import * 
++from .graphicsItems.DateAxisItem import *
+ from .graphicsItems.LabelItem import * 
+ from .graphicsItems.CurvePoint import * 
+ from .graphicsItems.GraphicsWidgetAnchor import * 
