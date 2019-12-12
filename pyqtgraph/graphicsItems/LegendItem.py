@@ -21,7 +21,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
     """
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0, pen=None,
-                 brush=None, labelTextColor=None, **kwargs):
+                 brush=None, labelTextColor=None, labelTextSize=None,
+                 labelTextBold=None, labelTextItalic=None, **kwargs):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -42,6 +43,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
                         accepted by :func:`mkBrush <pyqtgraph.mkBrush>` is allowed.
         labelTextColor  Pen to use when drawing legend text. Any single argument
                         accepted by :func:`mkPen <pyqtgraph.mkPen>` is allowed.
+        labelTextBold
         ==============  ===============================================================
 
         """
@@ -64,10 +66,29 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             'pen': fn.mkPen(pen),
             'brush': fn.mkBrush(brush),
             'labelTextColor': labelTextColor,
+            'labelTextSize': labelTextSize,
+            'labelTextBold': labelTextBold,
+            'labelTextItalic': labelTextItalic,
             'offset': offset,
         }
 
         self.opts.update(kwargs)
+
+    def labelItemOptions(self):
+        """
+        Return those options specific to labelItem, in a format that
+        is appropriate for __init__.
+        """
+
+        def _translateOpt(arg):
+            for p in ["labelText", "text"]:
+                if arg.starswith(p):
+                    arg = arg.replace(p, "")
+            return arg
+
+        arglist = {_translateOpt(k): v for k, v in self.opts.items()
+                   if _translateOpt(k) != k and v is not None}
+        return arglist
 
     def offset(self):
         return self.opts['offset']
@@ -121,6 +142,47 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
         self.paint()
 
+    def labelTextBold(self):
+        return self.opts['labelTextBold']
+
+    # avoiding a little boilerplate here
+    def setLabelAttr(self, attr, value):
+        """
+        Set an attr on a LabelItem. Should be one of
+        bold, italic or size.
+        """
+
+        key = 'labelText' + attr.capitalize()
+        self.opts[key] = value
+        for _, label in self.items:
+            label.setAttr(attr, value)
+
+        self.paint()
+
+    def setLabelTextBold(self, bold=True):
+        """
+        Set label text to be bold.
+        """
+        self.setLabelAttr("bold", bold)
+
+    def labelTextItalic(self):
+        return self.opts['labelTextItalic']
+
+    def setLabelTextItalic(self, italic=True):
+        """
+        Set label text to be italic.
+        """
+        self.setLabelAttr("italic", italic)
+
+    def labelTextSize(self):
+        return self.opts['labelTextSize']
+
+    def setLabelTextSize(self, size):
+        """
+        Set label size.
+        """
+        self.setLabelAttr("size", size)
+
     def setParentItem(self, p):
         ret = GraphicsWidget.setParentItem(self, p)
         if self.offset is not None:
@@ -131,7 +193,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
         return ret
 
-    def addItem(self, item, name):
+    def addItem(self, item, name, **kwargs):
         """
         Add a new entry to the legend.
 
@@ -144,7 +206,9 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         title           The title to display for this item. Simple HTML allowed.
         ==============  ========================================================
         """
-        label = LabelItem(name, color=self.opts['labelTextColor'], justify='left')
+        opts = self.labelItemOptions()
+        opts = opts.update(kwargs)
+        label = LabelItem(name, **opts)
         if isinstance(item, ItemSample):
             sample = item
         else:
@@ -192,7 +256,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         """
         while self.items != []:
             self.removeItem(self.items[0][1].text)
-                
+
     def updateSize(self):
         if self.size is not None:
             return
