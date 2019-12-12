@@ -258,6 +258,16 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         """
         self.setItemAttr("sampleScale", scale)
 
+    def setOpacity(self, level):
+        """
+        Set the opacity on the Legend (via the brush).
+        """
+
+        color = self.brush.color()
+        color.setAlpha(level)
+        self.brush.setColor(color)
+        self.paint()
+
     def setParentItem(self, p):
         """Set the parent."""
         ret = GraphicsWidget.setParentItem(self, p)
