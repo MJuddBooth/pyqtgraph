@@ -32,7 +32,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0,
                  pen=None, brush=None, labelTextColor=None, frame=True,
                  labelTextSize='0pt', labelTextBold=None, labelTextItalic=None,
-                 colCount=1, sampleType=None, **kwargs):
+                 colCount=1, sampleType=None, sampleScale=1.0, **kwargs):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -63,6 +63,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
                         based on this argument. This is useful for plots with many
                         curves displayed simultaneously. Default: 1 column.
         sampleType      Customizes the item sample class of the `LegendItem`.
+        sampleScale     The scale a sample.
         ==============  ===============================================================
 
         """
@@ -98,6 +99,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
             'labelTextSize': labelTextSize,
             'labelTextBold': labelTextBold,
             'labelTextItalic': labelTextItalic,
+            'sampleScale': sampleScale,
             'offset': offset,
         }
         self.opts.update(kwargs)
@@ -211,18 +213,23 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         self.update()
 
     # avoiding a little boilerplate here
-    def setLabelAttr(self, attr, value):
+    def setItemAttr(self, key, value):
         """
-        Set an attr on a LabelItem. Should be one of
+        Set an attr on a SampleItem or LabelItem. Should be one of
         bold, italic or size.
         """
+        target = "label" if key.startswith("label") else "sample"
+        attr = key.replace("labelText", "")
+        attr = attr.replace("sample", "").lower()
 
-        key = 'labelText' + attr.capitalize()
         self.opts[key] = value
-        for _, label in self.items:
-            label.setAttr(attr, value)
-
-        self.update()
+        for sample, label in self.items:
+            if target == "label":
+                label.setAttr(attr, value)
+            else:
+                # bit of hack but sample doesn't have setAttr
+                sample.scale = value
+        self.paint()
 
     def labelTextBold(self):
         return self.opts['labelTextBold']
@@ -231,7 +238,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         """
         Set label text to be bold.
         """
-        self.setLabelAttr("bold", bold)
+        self.setItemAttr("labelTextBold", bold)
 
     def labelTextItalic(self):
         return self.opts['labelTextItalic']
@@ -240,8 +247,16 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         """
         Set label text to be italic.
         """
-        self.setLabelAttr("italic", italic)
+        self.setItemAttr("labelTextItalic", italic)
 
+    def sampleScale(self):
+        return self.opts["sampelScale"]
+
+    def setSampleScale(self, scale):
+        """
+        Set the scale of a sample in the legend.
+        """
+        self.setItemAttr("sampleScale", scale)
 
     def setParentItem(self, p):
         """Set the parent."""
@@ -273,7 +288,9 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         if isinstance(item, self.SampleType):
             sample = item
         else:
-            sample = self.sampleType(item)
+            sample = self.SampleType(item, scale=opts["sampleScale"])
+
+        row = self.layout.rowCount()
         self.items.append((sample, label))
         self._addItemToLayout(sample, label)
         self.updateSize()
@@ -399,10 +416,11 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
 class ItemSample(GraphicsWidget):
     """Class responsible for drawing a single item in a LegendItem (sans label)
     """
-
-    def __init__(self, item):
+    ## Todo: make this more generic; let each item decide how it should be represented.
+    def __init__(self, item, scale=1.0):
         GraphicsWidget.__init__(self)
         self.item = item
+        self.scale = scale
 
     def boundingRect(self):
         return QtCore.QRectF(0, 0, 20, 20)
@@ -419,7 +437,14 @@ class ItemSample(GraphicsWidget):
             return
 
         if not isinstance(self.item, ScatterPlotItem):
-            p.setPen(fn.mkPen(opts['pen']))
+            pen = opts['pen']
+            if isinstance(pen, QtGui.QPen):
+                newpen = fn.mkPen(pen, width=pen.width() * self.scale)
+            else:
+                # width of 1 is the default
+                newpen = fn.mkPen(pen, width=self.scale)
+
+            p.setPen(newpen)
             p.drawLine(0, 11, 20, 11)
 
             if (opts.get('fillLevel', None) is not None and
