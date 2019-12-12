@@ -57,7 +57,7 @@ class LabelItem(GraphicsWidgetAnchor, GraphicsWidget):
         color = fn.mkColor(color)
         optlist.append('color: ' + color.name(QtGui.QColor.NameFormat.HexArgb))
         if 'size' in opts:
-            optlist.append('font-size: ' + opts['size'])
+            optlist.append('font-size: ' + str(opts['size']))
         if 'bold' in opts and opts['bold'] in [True, False]:
             optlist.append('font-weight: ' + {True:'bold', False:'normal'}[opts['bold']])
         if 'italic' in opts and opts['italic'] in [True, False]:
