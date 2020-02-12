@@ -88,7 +88,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
         def _translateOpt(arg):
             for p in ["labelText", "text"]:
-                if arg.starswith(p):
+                if arg.startswith(p):
                     arg = arg.replace(p, "")
             return arg
 
