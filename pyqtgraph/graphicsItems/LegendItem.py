@@ -237,7 +237,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         ==============  ========================================================
         """
         opts = self.labelItemOptions()
-        opts = opts.update(kwargs)
+        opts.update(kwargs)
         label = LabelItem(name, **opts)
         if isinstance(item, ItemSample):
             sample = item
