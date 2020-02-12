@@ -242,7 +242,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         if isinstance(item, ItemSample):
             sample = item
         else:
-            sample = ItemSample(item, scale=opts["sampleScale"])
+            sample = ItemSample(item, scale=self.opts["sampleScale"])
 
         row = self.layout.rowCount()
         self.items.append((sample, label))
