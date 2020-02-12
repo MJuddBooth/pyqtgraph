@@ -80,6 +80,12 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
         self.opts.update(kwargs)
 
+    def setLegendOptions(self, **opts):
+        for k, v in opts.items():
+            if k.lower == "labelTextSize" and isinstance(v, int):
+                v = str(v) + "pt"
+            self.opts[k] = v
+
     def labelItemOptions(self):
         """
         Return those options specific to labelItem, in a format that
