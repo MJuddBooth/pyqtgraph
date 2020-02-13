@@ -235,7 +235,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
             else:
                 # bit of hack but sample doesn't have setAttr
                 sample.scale = value
-        self.paint()
+        # self.paint()
 
     def labelTextBold(self):
         return self.opts['labelTextBold']
@@ -272,7 +272,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         color = self.brush.color()
         color.setAlpha(level)
         self.brush.setColor(color)
-        self.paint()
+        # self.paint()
 
     def setParentItem(self, p):
         """Set the parent."""
