@@ -300,6 +300,8 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         """
         opts = self.labelItemOptions()
         opts.update(kwargs)
+        # FIXME: 'prod' version had 
+        # label = LabelItem(name, justify="left", **opts)
         label = LabelItem(name, **opts)
         if isinstance(item, self.SampleType):
             sample = item
