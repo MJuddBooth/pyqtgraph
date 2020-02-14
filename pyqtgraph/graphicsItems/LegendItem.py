@@ -82,7 +82,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
     def setLegendOptions(self, **opts):
         for k, v in opts.items():
-            if k.lower == "labelTextSize" and isinstance(v, int):
+            #  make sure it's a string, not a number
+            if k == "labelTextSize" and isinstance(v, int):
                 v = str(v) + "pt"
             self.opts[k] = v
 
@@ -96,7 +97,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             for p in ["labelText", "text"]:
                 if arg.startswith(p):
                     arg = arg.replace(p, "")
-            return arg
+            return arg.lower()
 
         arglist = {_translateOpt(k): v for k, v in self.opts.items()
                    if _translateOpt(k) != k and v is not None}
