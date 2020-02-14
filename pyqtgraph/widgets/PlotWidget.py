@@ -51,6 +51,7 @@ class PlotWidget(GraphicsView):
         GraphicsView.__init__(self, parent, background=background)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         self.enableMouse(False)
+        self.rightViewBox = None
         self.plotItem = PlotItem(**kargs)
         self.setCentralItem(self.plotItem)
         ## Explicitly wrap methods from plotItem
