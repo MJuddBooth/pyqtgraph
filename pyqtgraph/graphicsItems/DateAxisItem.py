@@ -209,11 +209,11 @@ class DateAxisItem(AxisItem):
         return values
 
     def setZoomLevelForDensity(self, density):
-        keys = sorted(self.zoomLevels.iterkeys())
+        keys = sorted(self.zoomLevels.keys())
         key = next((k for k in keys if density < k), keys[-1])
         self.zoomLevel = self.zoomLevels[key]
         self.zoomLevel.utcOffset = self.utcOffset
-    
+
     def setRange(self, mn, mx):
         """Set the range of values displayed by the axis.
         Usually this is handled automatically by linking the axis to a ViewBox with :func:`linkToView <pyqtgraph.AxisItem.linkToView>`
