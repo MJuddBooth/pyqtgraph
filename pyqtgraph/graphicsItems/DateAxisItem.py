@@ -331,6 +331,19 @@ class DateAxisItem(AxisItem):
         # Calculate minimal spacing of items on the axis
         size = sizeOf(self.zoomLevel.exampleText)
         self.minSpacing = density*size
+    
+    def setRange(self, mn, mx):
+        """Set the range of values displayed by the axis.
+        Usually this is handled automatically by linking the axis to a ViewBox with :func:`linkToView <pyqtgraph.AxisItem.linkToView>`
+        """
+        if any(np.isinf((mn, mx))) or any(np.isnan((mn, mx))):
+            raise Exception("Not setting range to [%s, %s]" % (str(mn), str(mx)))
+        self.range = [mn, mx]
+        if self.autoSIPrefix:
+            self.updateAutoSIPrefix()
+        self.picture = None
+        self.update()
+        
         
     def linkToView(self, view):
         """Link this axis to a ViewBox, causing its displayed range to match the visible range of the view."""
