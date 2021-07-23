@@ -79,6 +79,22 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
         self.opts.update(kwargs)
 
+    def setOpts(self, **kwargs):
+        """
+        Set a bunch of options at once.
+        """
+
+        pen = kwargs.pop("pen", None)
+        if pen is not None:
+            self.setPen(pen)
+
+        brush = kwargs.pop("brush", None)
+        if brush is not None:
+            self.setBrush(brush)
+
+        self.opts.update(kwargs)
+        self.setItemAttrs(**kwargs)
+
     def labelItemOptions(self):
         """
         Return those options specific to labelItem, in a format that
@@ -151,23 +167,34 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         return self.opts['labelTextBold']
 
     # avoiding a little boilerplate here
-    def setItemAttr(self, key, value):
+    def setItemAttr(self, key, value, update=True):
         """
         Set an attr on a SampleItem or LabelItem. Should be one of
         bold, italic or size.
         """
-        target = "label" if key.startswith("label") else "sample"
+
         attr = key.replace("labelText", "")
         attr = attr.replace("sample", "").lower()
 
         self.opts[key] = value
         for sample, label in self.items:
-            if target == "label":
+            if key.startswith("label"):
                 label.setAttr(attr, value)
-            else:
+            elif key.startswith("sample:"):
                 # bit of hack but sample doesn't have setAttr
                 sample.scale = value
-        self.paint()
+        if update:
+            self.paint()
+
+    def setItemAttrs(self, update=True, **kwargs):
+        """
+        Set multiple label values at once.
+        """
+
+        for arg, value in kwargs.itesm():
+            self.setItemAttr(arg, value, update=False)
+        if update:
+            self.paint()
 
     def setLabelTextBold(self, bold=True):
         """
