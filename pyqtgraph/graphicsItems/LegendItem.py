@@ -22,7 +22,9 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
     """
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0, pen=None,
-                 brush=None, labelTextColor=None, **kwargs):
+                 brush=None, labelTextColor=None, labelTextSize=None,
+                 labelTextBold=None, labelTextItalic=None, sampleScale=1.0,
+                 **kwargs):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -43,6 +45,10 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
                         accepted by :func:`mkBrush <pyqtgraph.mkBrush>` is allowed.
         labelTextColor  Pen to use when drawing legend text. Any single argument
                         accepted by :func:`mkPen <pyqtgraph.mkPen>` is allowed.
+        labelTextSize   The size of the label text.
+        labelTextBold   If True, label text will be bold.
+        labelTextItalic If True, label text will be italic.
+        sampleScale     The scale a sample.
         ==============  ===============================================================
 
         """
@@ -65,10 +71,37 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             'pen': fn.mkPen(pen),
             'brush': fn.mkBrush(brush),
             'labelTextColor': labelTextColor,
+            'labelTextSize': labelTextSize,
+            'labelTextBold': labelTextBold,
+            'labelTextItalic': labelTextItalic,
+            'sampleScale': sampleScale,
             'offset': offset,
         }
 
         self.opts.update(kwargs)
+
+    def setLegendOptions(self, **opts):
+        for k, v in opts.items():
+            #  make sure it's a string, not a number
+            if k == "labelTextSize" and isinstance(v, int):
+                v = str(v) + "pt"
+            self.opts[k] = v
+
+    def labelItemOptions(self):
+        """
+        Return those options specific to labelItem, in a format that
+        is appropriate for __init__.
+        """
+
+        def _translateOpt(arg):
+            for p in ["labelText", "text"]:
+                if arg.startswith(p):
+                    arg = arg.replace(p, "")
+            return arg.lower()
+
+        arglist = {_translateOpt(k): v for k, v in self.opts.items()
+                   if _translateOpt(k) != k and v is not None}
+        return arglist
 
     def offset(self):
         return self.opts['offset']
@@ -94,7 +127,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         pen = fn.mkPen(*args, **kargs)
         self.opts['pen'] = pen
 
-        self.paint()
+        # self.paint()
 
     def brush(self):
         return self.opts['brush']
@@ -105,7 +138,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             return
         self.opts['brush'] = brush
 
-        self.paint()
+        # self.paint()
 
     def labelTextColor(self):
         return self.opts['labelTextColor']
@@ -120,7 +153,72 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         for sample, label in self.items:
             label.setAttr('color', self.opts['labelTextColor'])
 
-        self.paint()
+        # self.paint()
+
+    def labelTextBold(self):
+        return self.opts['labelTextBold']
+
+    # avoiding a little boilerplate here
+    def setItemAttr(self, key, value):
+        """
+        Set an attr on a SampleItem or LabelItem. Should be one of
+        bold, italic or size.
+        """
+        target = "label" if key.startswith("label") else "sample"
+        attr = key.replace("labelText", "")
+        attr = attr.replace("sample", "").lower()
+
+        self.opts[key] = value
+        for sample, label in self.items:
+            if target == "label":
+                label.setAttr(attr, value)
+            else:
+                # bit of hack but sample doesn't have setAttr
+                sample.scale = value
+        # self.paint()
+
+    def setLabelTextBold(self, bold=True):
+        """
+        Set label text to be bold.
+        """
+        self.setItemAttr("labelTextBold", bold)
+
+    def labelTextItalic(self):
+        return self.opts['labelTextItalic']
+
+    def setLabelTextItalic(self, italic=True):
+        """
+        Set label text to be italic.
+        """
+        self.setItemAttr("labelTextItalic", italic)
+
+    def labelTextSize(self):
+        return self.opts['labelTextSize']
+
+    def setLabelTextSize(self, size):
+        """
+        Set label size.
+        """
+        self.setItemAttr("labelTextSize", size)
+
+    def sampleScale(self):
+        return self.opts["sampelScale"]
+
+    def setSampleScale(self, scale):
+        """
+        Set the scale of a sample in the legend.
+        """
+        self.setItemAttr("sampleScale", scale)
+
+    def setOpacity(self, level):
+        """
+        Set the opacity on the Legend (via the brush).
+        """
+
+        color = self.brush.color()
+        color.setAlpha(level)
+        self.brush.setColor(color)
+        # self.paint()
 
     def setParentItem(self, p):
         ret = GraphicsWidget.setParentItem(self, p)
@@ -132,7 +230,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
         return ret
 
-    def addItem(self, item, name):
+    def addItem(self, item, name, **kwargs):
         """
         Add a new entry to the legend.
 
@@ -145,11 +243,13 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         title           The title to display for this item. Simple HTML allowed.
         ==============  ========================================================
         """
-        label = LabelItem(name, color=self.opts['labelTextColor'], justify='left')
+        opts = self.labelItemOptions()
+        opts.update(kwargs)
+        label = LabelItem(name, justify="left", **opts)
         if isinstance(item, ItemSample):
             sample = item
         else:
-            sample = ItemSample(item)
+            sample = ItemSample(item, scale=self.opts["sampleScale"])
 
         row = self.layout.rowCount()
         self.items.append((sample, label))
@@ -177,15 +277,6 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
                 return                                  # return after first match
 
     def clear(self):
-        """Removes all items from legend."""
-        for sample, label in self.items:
-            self.layout.removeItem(sample)
-            self.layout.removeItem(label)
-
-        self.items = []
-        self.updateSize()
-
-    def clear(self):
         """
         Removes all items from the legend.
 
@@ -193,7 +284,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         """
         while self.items != []:
             self.removeItem(self.items[0][1].text)
-                
+
     def updateSize(self):
         if self.size is not None:
             return
@@ -224,9 +315,10 @@ class ItemSample(GraphicsWidget):
     This may be subclassed to draw custom graphics in a Legend.
     """
     ## Todo: make this more generic; let each item decide how it should be represented.
-    def __init__(self, item):
+    def __init__(self, item, scale=1.0):
         GraphicsWidget.__init__(self)
         self.item = item
+        self.scale = scale
 
     def boundingRect(self):
         return QtCore.QRectF(0, 0, 20, 20)
@@ -238,7 +330,14 @@ class ItemSample(GraphicsWidget):
             p.setRenderHint(p.Antialiasing)
 
         if not isinstance(self.item, ScatterPlotItem):
-            p.setPen(fn.mkPen(opts['pen']))
+            pen = opts['pen']
+            if isinstance(pen, QtGui.QPen):
+                newpen = fn.mkPen(pen, width=pen.width() * self.scale)
+            else:
+                # width of 1 is the default
+                newpen = fn.mkPen(pen, width=self.scale)
+
+            p.setPen(newpen)
             p.drawLine(0, 11, 20, 11)
 
         symbol = opts.get('symbol', None)
