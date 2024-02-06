@@ -10,7 +10,7 @@ from .GraphicsWidgetAnchor import GraphicsWidgetAnchor
 from .LabelItem import LabelItem
 from .PlotDataItem import PlotDataItem
 from .ScatterPlotItem import ScatterPlotItem, drawSymbol
-from pyqtgraph.examples.console_exception_inspection import raiseFrom
+#from pyqtgraph.examples.console_exception_inspection import raiseFrom
 
 __all__ = ['LegendItem', 'ItemSample']
 
@@ -31,7 +31,7 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
     """
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0,
                  pen=None, brush=None, labelTextColor=None, frame=True,
-                 labelTextSize='0pt', labelTextBold=None, labelTextItalic=None,
+                 labelTextSize='9pt', labelTextBold=None, labelTextItalic=None,
                  colCount=1, sampleType=None, sampleScale=1.0, **kwargs):
         """
         ==============  ===============================================================
@@ -301,13 +301,13 @@ class LegendItem(GraphicsWidgetAnchor, GraphicsWidget):
         """
         opts = self.labelItemOptions()
         opts.update(kwargs)
-        # FIXME: 'prod' version had 
+        # FIXME: 'prod' version had
         # label = LabelItem(name, justify="left", **opts)
         label = LabelItem(name, **opts)
-        if isinstance(item, self.SampleType):
+        if isinstance(item, self.sampleType):
             sample = item
         else:
-            sample = self.SampleType(item, scale=opts["sampleScale"])
+            sample = self.sampleType(item, scale=self.opts["sampleScale"])
 
         row = self.layout.rowCount()
         self.items.append((sample, label))
