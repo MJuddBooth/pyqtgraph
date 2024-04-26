@@ -31,7 +31,9 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0,
                  pen=None, brush=None, labelTextColor=None, frame=True,
-                 labelTextSize='9pt', colCount=1, sampleType=None, **kwargs):
+                 labelTextSize='9pt', colCount=1, sampleType=None,
+                 labelTextBold=None, labelTextItalic=None, sampleScale=1.0,
+                 **kwargs):
         """
         ==============  ===============================================================
         **Arguments:**
@@ -59,6 +61,9 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
                         based on this argument. This is useful for plots with many
                         curves displayed simultaneously. Default: 1 column.
         sampleType      Customizes the item sample class of the `LegendItem`.
+        labelTextBold   If True, label text will be bold.
+        labelTextItalic If True, label text will be italic.
+        sampleScale     The scale of a sample.
         ==============  ===============================================================
 
         """
@@ -92,9 +97,35 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
             'brush': fn.mkBrush(brush),
             'labelTextColor': labelTextColor,
             'labelTextSize': labelTextSize,
+            'labelTextBold': labelTextBold,
+            'labelTextItalic': labelTextItalic,
+            'sampleScale': sampleScale,
             'offset': offset,
         }
         self.opts.update(kwargs)
+
+    def setLegendOptions(self, **opts):
+        for k, v in opts.items():
+            #  make sure it's a string, not a number
+            if k == "labelTextSize" and isinstance(v, int):
+                v = str(v) + "pt"
+            self.opts[k] = v
+
+    def labelItemOptions(self):
+        """
+        Return those options specific to labelItem, in a format that
+        is appropriate for __init__.
+        """
+
+        def _translateOpt(arg):
+            for p in ["labelText", "text"]:
+                if arg.startswith(p):
+                    arg = arg.replace(p, "")
+            return arg.lower()
+
+        arglist = {_translateOpt(k): v for k, v in self.opts.items()
+                   if _translateOpt(k) != k and v is not None}
+        return arglist
 
     def setSampleType(self, sample):
         """Set the new sample item claspes"""
@@ -188,6 +219,61 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
 
         self.update()
 
+    # avoiding a little boilerplate here
+    def setItemAttr(self, key, value):
+        """
+        Set an attr on a SampleItem or LabelItem. Should be one of
+        bold, italic or size.
+        """
+        target = "label" if key.startswith("label") else "sample"
+        attr = key.replace("labelText", "")
+        attr = attr.replace("sample", "").lower()
+
+        self.opts[key] = value
+        for sample, label in self.items:
+            if target == "label":
+                label.setAttr(attr, value)
+            else:
+                # bit of hack but sample doesn't have setAttr
+                sample.scale = value
+        # self.paint()
+
+    def labelTextBold(self):
+        return self.opts['labelTextBold']
+
+    def setLabelTextBold(self, bold=True):
+        """
+        Set label text to be bold.
+        """
+        self.setItemAttr("labelTextBold", bold)
+
+    def labelTextItalic(self):
+        return self.opts['labelTextItalic']
+
+    def setLabelTextItalic(self, italic=True):
+        """
+        Set label text to be italic.
+        """
+        self.setItemAttr("labelTextItalic", italic)
+
+    def labelTextSize(self):
+        return self.opts['labelTextSize']
+
+    def setLabelTextSize(self, size):
+        """
+        Set label size.
+        """
+        self.setItemAttr("labelTextSize", size)
+
+    def sampleScale(self):
+        return self.opts["sampelScale"]
+
+    def setSampleScale(self, scale):
+        """
+        Set the scale of a sample in the legend.
+        """
+        self.setItemAttr("sampleScale", scale)
+
     def setParentItem(self, p):
         """Set the parent."""
         ret = GraphicsWidget.setParentItem(self, p)
@@ -212,12 +298,13 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         title           The title to display for this item. Simple HTML allowed.
         ==============  ========================================================
         """
-        label = LabelItem(name, color=self.opts['labelTextColor'],
-                          justify='left', size=self.opts['labelTextSize'])
+        opts = self.labelItemOptions()
+        label = LabelItem(name, justify="left", **opts)
+
         if isinstance(item, self.sampleType):
             sample = item
         else:
-            sample = self.sampleType(item)
+            sample = self.sampleType(item, scale=self.opts["sampleScale"])
         self.items.append((sample, label))
         self._addItemToLayout(sample, label)
         self.updateSize()
@@ -344,9 +431,10 @@ class ItemSample(GraphicsWidget):
     """Class responsible for drawing a single item in a LegendItem (sans label)
     """
 
-    def __init__(self, item):
+    def __init__(self, item, scale=1.0):
         GraphicsWidget.__init__(self)
         self.item = item
+        self.scale = scale
 
     def boundingRect(self):
         return QtCore.QRectF(0, 0, 20, 20)
@@ -363,13 +451,20 @@ class ItemSample(GraphicsWidget):
             return
 
         if not isinstance(self.item, ScatterPlotItem):
-            p.setPen(fn.mkPen(opts['pen']))
+            pen = opts['pen']
+            if isinstance(pen, QtGui.QPen):
+                newpen = fn.mkPen(pen, width=pen.width() * self.scale)
+            else:
+                # width of 1 is the default
+                newpen = fn.mkPen(pen, width=self.scale)
+
+            p.setPen(newpen)
             p.drawLine(0, 11, 20, 11)
 
             if (opts.get('fillLevel', None) is not None and
                     opts.get('fillBrush', None) is not None):
                 p.setBrush(fn.mkBrush(opts['fillBrush']))
-                p.setPen(fn.mkPen(opts['pen']))
+                p.setPen(newpen)
                 p.drawPolygon(QtGui.QPolygonF(
                     [QtCore.QPointF(2, 18), QtCore.QPointF(18, 2),
                      QtCore.QPointF(18, 18)]))
