@@ -245,7 +245,8 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         """
         opts = self.labelItemOptions()
         opts.update(kwargs)
-        label = LabelItem(name, justify="left", **opts)
+        opts.setdefault("justify", "left")
+        label = LabelItem(name, **opts)
         if isinstance(item, ItemSample):
             sample = item
         else:
