@@ -660,11 +660,18 @@ class AxisItem(GraphicsWidget):
         while intervals[minorIndex+1] <= optimalSpacing:
             minorIndex += 1
 
-        levels = [
-            (intervals[minorIndex+2], 0),
-            (intervals[minorIndex+1], 0),
-            #(intervals[minorIndex], 0)    ## Pretty, but eats up CPU
-        ]
+        if self.style['maxTickLevel'] >= 2:
+            levels = [
+                (intervals[minorIndex+2], 0),
+                (intervals[minorIndex+1], 0),
+                #(intervals[minorIndex], 0)    ## Pretty, but eats up CPU
+                ]
+        else:
+            levels = [
+                (intervals[minorIndex+1], 0),
+                # (intervals[minorIndex+1], 0),
+                #(intervals[minorIndex], 0)
+                ]
 
         if self.style['maxTickLevel'] >= 2:
             ## decide whether to include the last level of ticks
@@ -672,9 +679,9 @@ class AxisItem(GraphicsWidget):
             maxTickCount = size / minSpacing
             if dif / intervals[minorIndex] <= maxTickCount:
                 levels.append((intervals[minorIndex], 0))
-         
+
         return levels
-        
+
         ##### This does not work -- switching between 2/5 confuses the automatic text-level-selection
         ### Determine major/minor tick spacings which flank the optimal spacing.
         #intervals = np.array([1., 2., 5., 10., 20., 50., 100.]) * p10unit
