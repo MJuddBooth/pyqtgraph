@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from .AxisItem import AxisItem
 
-__all__ = ['DateAxisItem', 'ZoomLevel']
+__all__ = ['DateAxisItem', 'ZoomLevel', 'YEAR_ZOOM_LEVEL']
 
 MS_SPACING = 1/1000.0
 SECOND_SPACING = 1
@@ -129,6 +129,9 @@ class ZoomLevel:
         return valueSpecs
 
 
+YEAR_ZOOM_LEVEL = ZoomLevel([
+    TickSpec(YEAR_SPACING, makeYStepper(1), '%Y', autoSkip=[1, 5, 10, 25]),
+])
 YEAR_MONTH_ZOOM_LEVEL = ZoomLevel([
     TickSpec(YEAR_SPACING, makeYStepper(1), '%Y', autoSkip=[1, 5, 10, 25]),
     TickSpec(MONTH_SPACING, makeMStepper(1), '%b')
@@ -182,7 +185,8 @@ class DateAxisItem(AxisItem):
             15 * 60 * self.maxTicksPerPt:     HOUR_MINUTE_ZOOM_LEVEL,
             6 * 3600 * self.maxTicksPerPt:    DAY_HOUR_ZOOM_LEVEL,
             5 * 3600*24 * self.maxTicksPerPt: MONTH_DAY_ZOOM_LEVEL,
-            3600*24*30 * self.maxTicksPerPt:  YEAR_MONTH_ZOOM_LEVEL
+            3600*24*30 * self.maxTicksPerPt:  YEAR_MONTH_ZOOM_LEVEL,
+            3600*8760 * self.maxTicksPerPt:   YEAR_ZOOM_LEVEL
         }
 
     def tickStrings(self, values, scale, spacing):
